@@ -1,0 +1,15 @@
+id1
+Corso Garibaldi, 82100 BN
+12
+12
+on
+id2
+Via Rufina,BN
+13
+13
+on
+id3
+Via Porta Arsa
+14
+14
+on

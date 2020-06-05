@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Elenco nodi sensore</title>
+		<!-- <link rel="stylesheet" type="text/css" href="css/main-style.css" > -->
+		<style>
+				table {
+					border-collapse: collapse;
+				    width: 100%;
+					border-collapse:separate;
+ 					   border:solid black 1px;
+    				border-radius:6px;
+  				  -moz-border-radius:6px;
+				}
+				
+				button,th, td {
+					text-align: left;
+					padding: 10px;
+				}
+				button {
+				width: 90px;
+				background-color: Transparent;
+				border: none;
+				font-size: 20px;
+				}
+				.desc {
+				text-align : center ;
+				font-size: 20px;
+				  font-family: "Times New Roman", Times, serif;
+				}
+				tr:nth-child(even){background-color: #f2f2f2;}
+				
+				th {
+					background-color:rgb(153, 202, 255);
+					color: white;
+				}
+				
+				#table-container{
+				 margin-left: 50px;
+				 margin-top: 30px;
+				 width: 70%;
+				}
+				#node-container{
+                  height: 400px;
+                  width: 50%;
+                  display : none;
+                  margin-left: 100px;
+                  margin-top : 60px;
+                 }
+                 i{
+                  padding-left : 50px;
+                  
+                 }
+                 input[type="button"] {
+                 border: none;
+				 font-size: 20px;
+				 background-color: Transparent;
+				 text-align: center;
+				 color:white;
+                 }
+                 .select{
+                 background-color:rgb(153, 202, 255);
+                 
+                 }
+                 .select:hover{
+                 	background-color: rgb(102, 179, 255);
+                 }
+            
+            
+                 h2 {
+                 text-decoration: overline;
+                 font-family:  sans-serif;
+                 padding-left:500px;
+                 
+                 }
+                
+                 .round-button {
+	             width:70px;
+                 }
+.round-button-circle {
+	width: 100%;
+	height:0;
+	padding-bottom: 70%;
+    border-radius: 30%;
+	border:8px solid #cfdcec;
+    overflow:hidden;
+    
+    background: #4679BD; 
+    box-shadow: 0 0 3px gray;
+}
+.round-button-circle:hover {
+	background:#30588e;
+}
+.round-button a {
+    display:block;
+	float:left;
+	width:100%;
+	padding-top:50%;
+    padding-bottom:50%;
+	line-height:1em;
+	margin-top:-0.5em;
+    
+	text-align:center;
+	color:#e2eaf3;
+    font-family:Verdana;
+    font-size:10px;
+    font-weight:bold;
+    text-decoration:none;
+}
+#gmap_canvas img{max-width:none!important;background:none!important
+	</style>
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+		 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	
+		<script type="text/javascript">
+			function asynchGetNodesAndMakeRows() {
+				var req = new XMLHttpRequest();
+		  
+		        req.open('GET', 'http://localhost:8080/Esercitazione14.4/Agent/rest/nodes', true);
+		        req.setRequestHeader("Access-Control-Allow-Methods", "GET, PUT, POST");
+
+				req.setRequestHeader('Content-type', 'application/json');
+				req.onerror = function() { alert("Not Connected"); }
+				req.onloadend = function() {
+				var json = this.responseText;
+
+				var obj = jQuery.parseJSON(json);
+	
+					
+					var tableContainer = document.getElementById("table-container");
+					var htmlToWrite =  "<table><tr><th>Nome</th><th>Posizione</th><th >Ultima Segnalazione</th><th>Stato</th><th>&nbsp;</th></tr>";
+					var i = 0;
+					while(i< obj.nodes.lenght) {
+						var node = obj.nodes.collection[i];
+						
+
+						var htmlRow = "<tr>";
+			         	htmlRow += "<td>"+node.id+"</td>";
+						htmlRow += "<td>"+node.latitude+"</td>";
+						htmlRow += "<td>"+node.longitude+"</td>";
+						if(node.stat == "on")
+						htmlRow += "<td><i class=\"far fa-thumbs-up\"></i></td>";
+						else
+						htmlRow += "<td><i class=\"fas fa-times\"></i></td>";
+
+						htmlRow += "<td><button onclick=\"getNodeDetail('"+node.id+"')\" value=\"dettaglio\" > <i class=\"fa fa-folder\"></button></td>";
+
+						htmlRow+= "</tr>";
+						htmlToWrite += htmlRow;
+
+						i++;
+					}
+					htmlToWrite += "</table>";
+				
+					tableContainer.innerHTML =  htmlToWrite;
+				
+				} 
+				req.send();
+
+				
+				
+			}
+
+			function getNodeDetail(nodeId) {
+	            var divtable = document.getElementById("node-container");
+	            var divmap = document.getElementById("map");
+
+	            divtable.style.display = 'block';
+	            divmap.style.height="440px";
+	            divmap.style.width="700px";
+				var req = new XMLHttpRequest();
+				req.open("GET", "http://localhost:8080/Esercitazione14.4/Agent/rest/nodes/"+nodeId, true);
+				req.onloadend = function() {
+				
+				var json = this.responseText;				
+				var obj = jQuery.parseJSON(json);
+				var address =obj.node["address"];
+				var html2 = "<iframe width='700' height='440' src='https://maps.google.com/maps?width=700&amp;height=440&amp;hl=en&amp;q=" + obj.node.address +"&amp;ie=UTF8&amp;t=&amp;z=10&amp;iwloc=B&amp;output=embed' frameborder='0' scrolling='no' marginheight='0' marginwidth='0'>";
+
+				var htmltowrite = "<table><tr><th  class =\"select\" ><input type=\"button\" id = \"btdesc\" onclick = \"getNodeDetail('" + nodeId + "')\" value = \"Descrizione\"></th><th  class =\"select\"><input type=\"button\" value = \"Sensori\" onclick=\" PopolaConSensori('"+nodeId+"')\"</th><th  class =\"select\"><input type=\"button\" value = \"Dati Ricevuti\"  onclick=\" PopolaConSamples('"+nodeId+"')\"></tr>";
+				var htmlRow = "<tr>";
+				htmlRow += "<tr ><td class = \"desc\" colspan=\"2\">Nome</td> <td class = \"desc\" >"+obj.node.id+"</td></tr>";
+				htmlRow += "<tr  ><td class =\"desc\" colspan=\"2\">Indirizzo</td> <td class = \"desc\" >"+obj.node.address + "</td></tr>";
+				htmlRow += "</table>";
+				htmltowrite += htmlRow;
+				divmap.innerHTML = html2;
+				divtable.innerHTML =  htmltowrite;
+
+				}
+				req.send();
+
+			}
+	
+			
+	    function PopolaConSensori(nodeId){
+	    	var divtable = document.getElementById("node-container");
+            divtable.style.display = 'block';
+			var req = new XMLHttpRequest();
+			req.open("GET", "http://localhost:8080/Esercitazione14.4/Agent/rest/nodes/"+nodeId, true);
+
+			req.onloadend = function() {
+			var json = this.responseText;
+ 			var obj = jQuery.parseJSON(json);
+			var htmltowrite = "<table><tr><th  class =\"select\"><input type=\"button\" id = \"btdesc\" onclick = \"getNodeDetail('" + nodeId + "')\" value = \"Descrizione\"></th><th  class =\"select\"><input type=\"button\" value = \"Sensori\" onclick=\" PopolaConSensori('"+nodeId+"')\"</th><th  class =\"select\"><input type=\"button\" value = \"Dati Ricevuti\"  onclick=\" PopolaConSamples('"+nodeId+"')\"></tr>";
+
+			for(var i = 0;i< obj.node.lenght;i++){
+				var htmlRow ="";
+				if(obj.node.stat == "on")
+                 htmlRow += "<tr><td colspan=\"2\"  >"+ obj.node.sensors.entry[i].value.contextAttribute+"</td><td> <i class=\"far fa-thumbs-up\"></i></td></tr>" ;
+                 else
+                	 htmlRow += "<tr><td colspan=\"2\">" + obj.node.sensors.entry[i].value.contextAttribute+"</td><td> <i class=\"fas fa-times\"></i></td></tr>" ;
+		    htmlRow += "<tr><td colspan=\"2\">Codice</td> <td>"+obj.node.sensors.entry[i].value.code+"</td></tr>";
+			htmlRow += "<tr><td colspan=\"2\">Precisione</td> <td>"+obj.node.sensors.entry[i].value.precision + "</td></tr>";
+			htmlRow += "<tr><td colspan=\"2\">Periodo Campionamento</td> <td>"+obj.node.sensors.entry[i].value.samplePeriod + "</td></tr>";
+			htmltowrite += htmlRow;
+			
+			}
+			htmltowrite += "</table>";
+			divtable.innerHTML =  htmltowrite;
+			}
+			req.send();
+	    }
+	    function PopolaConSamples(nodeId){
+	    	var divtable = document.getElementById("node-container");
+            divtable.style.display = 'block';
+            
+			var req = new XMLHttpRequest();
+			req.open("GET", "http://localhost:8080/Esercitazione14.4/Agent/rest/nodes/"+nodeId, true);
+			var htmltowrite = "<table><tr><th  class =\"select\"><input type=\"button\" id = \"btdesc\" onclick = \"getNodeDetail('" + nodeId + "')\" value = \"Descrizione\"></th><th  class =\"select\"><input type=\"button\" value = \"Sensori\" onclick=\" PopolaConSensori('"+nodeId+"')\"</th><th  class =\"select\"><input type=\"button\" value = \"Dati Ricevuti\"  onclick=\" PopolaConSamples('"+nodeId+"')\"></tr>";
+			divtable.innerHTML =  htmltowrite;
+			req.onloadend = function() {
+			var json = this.responseText;
+			var obj = jQuery.parseJSON(json);
+				var lena = obj.node.lenght;				
+				for(var i = 0;i<lena; i++){
+			
+			    var attribute = obj.node.sensors.entry[i].value.contextAttribute;
+			    filltable(nodeId,attribute)
+				}
+				}
+			
+			req.send();
+			divtable.innerHTML +=   "</table>";
+	    }
+	    function filltable(nodeId,Attribute){
+	    	
+	    	var divtable = document.getElementById("node-container");
+            divtable.style.display = 'block';
+            var htmltowrite = '<table>';
+            
+			var  htmlRow="<tr></tr>" ;
+
+			var req2 = new XMLHttpRequest();
+			var ultvalrci ;
+			var data;
+			req2.open("GET", "http://localhost:8080/Esercitazione14.4/Agent/rest/nodes/"+ nodeId +"/sensors/" + Attribute + "/samples/last ", true);
+			req2.onloadend = function() {
+				var json2 = this.responseText;
+				if(Boolean(json2)){
+				
+					var obj3 = jQuery.parseJSON(json2);
+				
+					 ultvalrci = obj3.sample.ultimoValRic;
+					 data = obj3.sample.data;
+				     
+				}
+			
+			}
+
+			req2.send();
+		
+			var req3 = new XMLHttpRequest();
+			req3.open("GET", "http://localhost:8080/Esercitazione14.4/Agent/rest/nodes/"+nodeId+"/sensors/" + Attribute + "/samples_average", true)
+			req3.onloadend = function() {				
+             if ( ultvalrci != undefined && data != undefined){
+	
+            	 htmlRow = "<tr><td colspan=\"2\">" + Attribute+"</td><td><div class=\"round-button\"><div class=\"round-button-circle\"><a onclick=\"PopolaConSamples('"+nodeId+"')\" class=\"round-button\">Aggiorna</a></div></div></td></tr>" ;
+				htmlRow += "<tr><td colspan=\"2\">Ultimo Valore Ricevuto</td> <td>"+ultvalrci+"</td></tr>";
+				    htmlRow += "<tr><td colspan=\"2\">Data : </td> <td>"+data+ "</td></tr>";
+			     htmlRow += "<tr><td colspan=\"2\">Valore Medio : </td> <td>"+this.responseText+ "</td></tr>";
+			 	htmltowrite += htmlRow;
+				divtable.innerHTML +=  htmltowrite ;
+	    } else {
+       	 htmlRow += "<tr><td colspan=\"2\">" + Attribute+"<i class=\"fa fa-refresh\"></i></td><td><div class=\"round-button\"><div class=\"round-button-circle\"><a onclick=\"PopolaConSamples('"+nodeId+"')\" class=\"round-button\">Aggiorna</a></div></td></tr>" ;
+		 	htmltowrite += htmlRow;
+
+       	 divtable.innerHTML += htmltowrite ;
+	    }
+			}
+			
+			req3.send();
+	    }
+	  
+		</script>
+	</head>
+	<body onload="asynchGetNodesAndMakeRows()">
+		<h2> Elenco nodi sensore</h2>
+		
+	
+      <div  id = "map"></div>
+		<div id="table-container">
+			<table><tr><th>Nome</th><th>Posizione</th><th>Ultima segnalazione</th><th>Stato</th><th>&nbsp;</th></tr>
+			</table>
+		</div>
+		<div id="node-container">
+			<table><tr><th><input type="button" id = "btdesc"  value = "Descrizione"></th><th><input type="button" value = "Sensori"></th><th></th><th><input type="button" value = "Dati Ricevuti"></th><th>&nbsp;</th></tr>
+				
+			</table>
+		</div>
+	
+	</body>
+</html>
+
